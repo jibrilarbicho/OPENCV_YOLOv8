@@ -5,6 +5,9 @@ image=cv2.imread("./images/my4.PNG")
 originlaImageCopy=image.copy()
 width=700
 height=700
+questions=5
+choices=5
+ans=[1,2,0,3,4]
 image=cv2.resize(image,(width,height))
 def prepocesing(image):
     gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -37,6 +40,25 @@ def get_contours(prepocesedImage,OutputImage,minArea=100):
     cv2.drawContours(OutputImage,approx2,-1,(0,255,0),30)
 
     return OutputImage,approx1,approx2
+def CompareValues(questions,indeValues):
+    grading=[]
+    for x in range(0,questions):
+        if ans[x]==indeValues[x]:
+            grading.append(1)
+        else:
+            grading.append(0)
+    score=(sum(grading)/questions)*100
+    return score,grading
+
+
+
+def index_Values_marked_bubble(myPixel,questions):
+
+    arrIndex=[]
+    for x in range(0,questions):
+        indexvalue=np.argmax(myPixel[x])
+        arrIndex.append(indexvalue) 
+    return arrIndex
 def applyThreshold(imagewrappedbuble):
     imagewarppedgrayscale=cv2.cvtColor(imagewrappedbuble ,cv2.COLOR_BGR2GRAY)
     imagewarppedThreshold=cv2.threshold(imagewarppedgrayscale,170,255,cv2.THRESH_BINARY_INV)[1]
@@ -50,6 +72,22 @@ def splitboxes(image):
         for box in cols:
             boxes.append(box)
     return boxes
+def count_non_zero(boxes):
+    CountR=0
+    CountC=0
+    myPixelValue=np.zeros((questions,choices))
+
+
+    count=[]
+    for image in boxes:
+        totalPixels=cv2.countNonZero(image)
+        myPixelValue[CountR][CountC]=totalPixels
+        CountC+=1
+        if(CountC==choices):
+            CountR+=1
+            CountC=0
+        
+    return myPixelValue
 def warpperspective(Image,approx1,approx2):
     widthImg=700
     heightImg=700
@@ -88,6 +126,12 @@ drwaContours,approx1,approx2=get_contours(prepocesedImage,originlaImageCopy,minA
 imgwrapped,imgwrapped2,pts1,pts2,ptsG,ptsG2=warpperspective(image,approx1,approx2)
 imgwarppedThreshold=applyThreshold(imgwrapped)
 boxes=splitboxes(imgwarppedThreshold)
+myPixelValue=count_non_zero(boxes)
+arrIndex=index_Values_marked_bubble(myPixelValue,questions)
+score,grading=CompareValues(questions,arrIndex)
+print("Score: ",score)
+print("Index Values: ",arrIndex)
+print("MyPiexlValue: ",myPixelValue)
 
 
 # cv2.imshow("Warped Image",imgwrapped)
